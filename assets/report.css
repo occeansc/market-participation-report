@@ -31,7 +31,9 @@ table{width:100%;border-collapse:collapse;font-size:8.3pt;margin:1mm 0 3mm}
 th{text-align:left;font-weight:600;color:var(--navy);border-bottom:1.2pt solid var(--navy);padding:1.6mm 1.5mm}
 td{padding:1.5mm;border-bottom:.5pt solid var(--rule);vertical-align:top}
 .r{text-align:right;font-variant-numeric:tabular-nums}
-tr.tot td{font-weight:600;border-top:1pt solid var(--navy);border-bottom:0}
+tr.tot td{font-weight:600;border-top:1pt solid var(--navy);border-bottom:0;background:var(--wash)}
+tbody tr:nth-child(even) td{background:#F8FAFC}
+tbody tr.tot:nth-child(even) td{background:var(--wash)}
 .neg{color:var(--neg)}.pos{color:var(--pos)}
 .lg{display:flex;gap:5mm;flex-wrap:wrap;font-size:7.6pt;color:var(--mute);margin:0 0 2mm}
 .lg i{display:inline-block;width:2.6mm;height:2.6mm;margin-right:1.5mm;vertical-align:-.3mm}
