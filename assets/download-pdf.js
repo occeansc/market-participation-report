@@ -1,11 +1,12 @@
-/* Client-side PDF packager for the market-participation report.
-   Clicking "Download PDF" builds an A4 PDF from the live HTML pages and
-   sends it to the browser download, so the repo does not need a stale .pdf. */
+/* Client-side PDF packager.
+   Uses the browser's own renderer (not html2canvas's fake paint) at ~300dpi
+   so the file matches what you see on screen. */
 (function () {
   var LIBS = [
-    'https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js',
+    'https://cdn.jsdelivr.net/npm/html-to-image@1.11.13/dist/html-to-image.js',
     'https://cdn.jsdelivr.net/npm/jspdf@2.5.2/dist/jspdf.umd.min.js'
   ];
+  var FALLBACK = 'https://cdn.jsdelivr.net/npm/html2canvas-pro@1.5.13/dist/html2canvas-pro.min.js';
   var busy = false;
 
   function loadScript(src) {
@@ -24,9 +25,9 @@
     });
   }
 
-  function loadLibs() {
+  function loadLibs(list) {
     var chain = Promise.resolve();
-    LIBS.forEach(function (src) {
+    list.forEach(function (src) {
       chain = chain.then(function () { return loadScript(src); });
     });
     return chain;
@@ -69,9 +70,12 @@
     return /iPad|iPhone|iPod/.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
   }
 
+  function isMobile() {
+    return window.innerWidth < 700 || /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent || '');
+  }
+
   function triggerDownload(blob, name) {
     var file = new File([blob], name, { type: 'application/pdf' });
-
     if (isIOS() && navigator.canShare) {
       try {
         if (navigator.canShare({ files: [file] })) {
@@ -82,7 +86,6 @@
         }
       } catch (e) { /* fall through */ }
     }
-
     fallbackAnchor(blob, name);
     return Promise.resolve();
   }
@@ -113,6 +116,73 @@
     }
   }
 
+  function pageBackground(page) {
+    var bg = getComputedStyle(page).backgroundColor;
+    if (!bg || bg === 'transparent' || bg === 'rgba(0, 0, 0, 0)') return '#ffffff';
+    return bg;
+  }
+
+  function snapWithHtmlToImage(page, ratio) {
+    return window.htmlToImage.toCanvas(page, {
+      pixelRatio: ratio,
+      cacheBust: false,
+      backgroundColor: pageBackground(page),
+      skipAutoScale: true,
+      width: page.offsetWidth,
+      height: page.offsetHeight,
+      style: {
+        zoom: '1',
+        margin: '0',
+        boxShadow: 'none',
+        transform: 'none'
+      }
+    });
+  }
+
+  function snapWithHtml2Canvas(page, ratio) {
+    return window.html2canvas(page, {
+      scale: ratio,
+      useCORS: true,
+      backgroundColor: pageBackground(page),
+      logging: false,
+      letterRendering: true,
+      foreignObjectRendering: true,
+      imageTimeout: 20000,
+      windowWidth: page.scrollWidth,
+      windowHeight: page.scrollHeight,
+      onclone: function (doc) {
+        var bar = doc.querySelector('.bar');
+        if (bar) bar.style.display = 'none';
+        doc.documentElement.style.setProperty('--z', '1');
+        Array.prototype.forEach.call(doc.querySelectorAll('.page'), function (p) {
+          p.style.zoom = '1';
+          p.style.margin = '0';
+          p.style.boxShadow = 'none';
+        });
+      }
+    });
+  }
+
+  function canvasToImage(canvas, png) {
+    if (png) {
+      try {
+        var data = canvas.toDataURL('image/png');
+        if (data && data.length > 32) return { data: data, format: 'PNG' };
+      } catch (e) { /* fall through */ }
+    }
+    return { data: canvas.toDataURL('image/jpeg', 0.98), format: 'JPEG' };
+  }
+
+  function capturePage(page, ratio) {
+    var run = window.htmlToImage
+      ? snapWithHtmlToImage(page, ratio)
+      : Promise.reject(new Error('html-to-image missing'));
+    return run.catch(function () {
+      if (window.html2canvas) return snapWithHtml2Canvas(page, ratio);
+      return loadScript(FALLBACK).then(function () { return snapWithHtml2Canvas(page, ratio); });
+    });
+  }
+
   function capture(anchor) {
     if (busy) return;
     busy = true;
@@ -132,9 +202,11 @@
     document.body.classList.add('pdf-exporting');
     document.documentElement.style.setProperty('--z', '1');
 
-    var scale = window.innerWidth < 500 ? 1.25 : (window.innerWidth < 800 ? 1.5 : 2);
+    var mobile = isMobile();
+    var ratio = mobile ? 2.5 : 3;
+    var preferPng = !mobile;
 
-    loadLibs()
+    loadLibs(LIBS)
       .then(function () { return document.fonts && document.fonts.ready; })
       .then(function () {
         return new Promise(function (r) {
@@ -143,36 +215,25 @@
       })
       .then(function () {
         var jsPDF = window.jspdf && window.jspdf.jsPDF;
-        if (!window.html2canvas || !jsPDF) throw new Error('PDF libraries failed to load');
-        var pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4', compress: true });
+        if (!jsPDF) throw new Error('jsPDF failed to load');
+        if (!window.htmlToImage && !window.html2canvas) throw new Error('renderer failed to load');
+
+        var pdf = new jsPDF({
+          orientation: 'portrait',
+          unit: 'mm',
+          format: 'a4',
+          compress: true,
+          hotfixes: ['px_scaling']
+        });
         var i = 0;
 
         function next() {
           if (i >= pages.length) return Promise.resolve(pdf);
-          setBusy(anchor, true, 'Preparing PDF… ' + (i + 1) + '/' + pages.length);
-          return window.html2canvas(pages[i], {
-            scale: scale,
-            useCORS: true,
-            backgroundColor: '#ffffff',
-            logging: false,
-            imageTimeout: 15000,
-            windowWidth: pages[i].scrollWidth,
-            windowHeight: pages[i].scrollHeight,
-            onclone: function (doc) {
-              var bar = doc.querySelector('.bar');
-              if (bar) bar.style.display = 'none';
-              doc.documentElement.style.setProperty('--z', '1');
-              doc.body.classList.add('pdf-exporting');
-              Array.prototype.forEach.call(doc.querySelectorAll('.page'), function (p) {
-                p.style.zoom = '1';
-                p.style.margin = '0';
-                p.style.boxShadow = 'none';
-              });
-            }
-          }).then(function (canvas) {
-            var img = canvas.toDataURL('image/jpeg', 0.92);
+          setBusy(anchor, true, 'Rendering page ' + (i + 1) + ' of ' + pages.length + '…');
+          return capturePage(pages[i], ratio).then(function (canvas) {
+            var img = canvasToImage(canvas, preferPng);
             if (i > 0) pdf.addPage();
-            pdf.addImage(img, 'JPEG', 0, 0, 210, 297, 'p' + i, 'FAST');
+            pdf.addImage(img.data, img.format, 0, 0, 210, 297, 'p' + i, 'NONE');
             canvas.width = 0;
             canvas.height = 0;
             i += 1;
@@ -183,6 +244,7 @@
         return next();
       })
       .then(function (pdf) {
+        setBusy(anchor, true, 'Saving PDF…');
         return triggerDownload(pdf.output('blob'), fileName(anchor));
       })
       .catch(function (err) {
