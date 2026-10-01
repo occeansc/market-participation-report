@@ -88,7 +88,7 @@
   }
 
   function fallbackAnchor(blob, name) {
-    var url = URL.createObjectURL(url);
+    var url = URL.createObjectURL(blob);
     var a = document.createElement('a');
     a.href = url;
     a.download = name;
@@ -136,7 +136,11 @@
 
     loadLibs()
       .then(function () { return document.fonts && document.fonts.ready; })
-      .then(function () { return new Promise(function (r) { requestAnimationFrame(function () { requestAnimationFrame(r); }); }); })
+      .then(function () {
+        return new Promise(function (r) {
+          requestAnimationFrame(function () { requestAnimationFrame(r); });
+        });
+      })
       .then(function () {
         var jsPDF = window.jspdf && window.jspdf.jsPDF;
         if (!window.html2canvas || !jsPDF) throw new Error('PDF libraries failed to load');
@@ -179,9 +183,7 @@
         return next();
       })
       .then(function (pdf) {
-        var name = fileName(anchor);
-        var blob = pdf.output('blob');
-        return triggerDownload(blob, name);
+        return triggerDownload(pdf.output('blob'), fileName(anchor));
       })
       .catch(function (err) {
         console.error(err);
