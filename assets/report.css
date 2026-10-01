@@ -47,3 +47,7 @@ svg{display:block;width:100%;height:auto}
 .l{font:8.5px Inter,Arial,sans-serif;fill:#1B2A38}.v{font:600 9px Inter,Arial,sans-serif;fill:#1B2A38}.m{fill:#5B6B7A}.w{fill:#fff}
 @media print{@page{size:A4;margin:0}body{background:#fff}.page{margin:0;box-shadow:none;zoom:1!important}.bar{display:none}}
 @media (prefers-reduced-motion:no-preference){html{scroll-behavior:smooth}}
+body.pdf-exporting{background:#fff}
+body.pdf-exporting .bar{display:none!important}
+body.pdf-exporting .page{margin:0;box-shadow:none;zoom:1!important}
+.bar a.is-busy{opacity:.65;pointer-events:none;cursor:progress}
