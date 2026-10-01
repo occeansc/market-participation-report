@@ -24,6 +24,8 @@ p{margin:0 0 2.6mm;max-width:165mm}
 .cover p{color:#C9D6E3;font-size:11pt;max-width:120mm}
 .cover .who{font:600 15pt "Source Serif 4",Georgia,serif;color:#fff}
 .kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:0;border-top:1.5pt solid var(--navy);border-bottom:.75pt solid var(--rule);margin-bottom:5mm}
+.kpis.n5{grid-template-columns:repeat(5,1fr)}
+.kpis.n5 b{font-size:17pt}
 .kpis div{padding:3mm 3mm 3mm 0}.kpis div+div{padding-left:3mm;border-left:.75pt solid var(--rule)}
 .kpis b{display:block;font:600 21pt/1.1 "Source Serif 4",Georgia,serif;color:var(--navy)}
 .kpis span{font-size:7.8pt;color:var(--mute)}
@@ -31,6 +33,7 @@ table{width:100%;border-collapse:collapse;font-size:8.3pt;margin:1mm 0 3mm}
 th{text-align:left;font-weight:600;color:var(--navy);border-bottom:1.2pt solid var(--navy);padding:1.6mm 1.5mm}
 td{padding:1.5mm;border-bottom:.5pt solid var(--rule);vertical-align:top}
 .r{text-align:right;font-variant-numeric:tabular-nums}
+.neg,.pos{white-space:nowrap}
 tr.tot td{font-weight:600;border-top:1pt solid var(--navy);border-bottom:0;background:var(--wash)}
 tbody tr:nth-child(even) td{background:#F8FAFC}
 tbody tr.tot:nth-child(even) td{background:var(--wash)}
