@@ -2,7 +2,7 @@
 import fs from 'fs';import path from 'path';import {fileURLToPath} from 'url';
 const R=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
 const D=new Function(fs.readFileSync(R+'/tools/data.js','utf8').replace("'use strict';",'')+';return {ACCOUNTS,TRADE_DATA,KHOOD_TRADES,NGX_TRADES,KHOOD_WITHDRAWALS}')();
-const VER='1.2.3',ASOF='September 2026',NAME='Foabao',DATE='September 2026',PDF='Foabao-Financial-Market-Participation-2023-2026-Overview.pdf';
+const VER='1.2.3',ASOF='September 2026',NAME='Isaac Familoni',DATE='September 2026',PDF='IF-Financial-Market-Participation-2023-2026-Overview.pdf';
 const sum=a=>a.reduce((s,x)=>s+x,0),f=(n,d=0)=>n.toLocaleString('en-US',{minimumFractionDigits:d,maximumFractionDigits:d});
 const usd=(n,d=0)=>(n<0?'−':'')+'$'+f(Math.abs(n),d),sg=(n,d=0)=>`<span class="${n<0?'neg':'pos'}">${n<0?'−':'+'}$${f(Math.abs(n),d)}</span>`,ngn=n=>(n<0?'−':'')+'₦'+f(Math.abs(n)),pc=n=>f(n*100)+'%';
 const FX=[['2024-05-29',1393],['2024-07-05',1530],['2025-02-27',1530],['2025-07-15',1530],['2025-08-28',1510],['2025-10-24',1455],['2026-01-09',1445],['2026-03-25',1380],['2026-05-15',1362],['2026-09-18',1364]];
