@@ -196,9 +196,9 @@ P.push(page('Notes',`Basis of preparation`,
 const html=`<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Financial market participation 2020, 2023–2026 · ${NAME}</title><link rel="stylesheet" href="assets/report.css"><script>
 /* To change the name or date shown throughout the report, edit the two values below. */
 var REPORT={name:"${NAME}",date:"${DATE}"};
-</script></head><body><div class="bar"><span>Financial market participation 2020, 2023–2026</span><span style="display:flex;gap:14px;align-items:center"><a href="overview.html" style="border:none;padding:0;text-decoration:underline">Public overview</a><a href="#download" role="button" download="${PDF}" data-pdf-name="${NAME}">Download PDF</a></span></div>${P.join('\n')}<script>(function(){var q=function(s){return document.querySelectorAll(s)};
+</script></head><body><div class="bar"><span>Financial market participation 2020, 2023–2026</span><span style="display:flex;gap:14px;align-items:center"><a href="overview.html" style="border:none;padding:0;text-decoration:underline">Public overview</a><a href="${PDF}" download="${PDF}">Download PDF</a></span></div>${P.join('\n')}<script>(function(){var q=function(s){return document.querySelectorAll(s)};
 q('[data-name]').forEach(function(e){e.textContent=REPORT.name});q('[data-date]').forEach(function(e){e.textContent=REPORT.date});
 document.title='Financial market participation 2020, 2023–2026 · '+REPORT.name;
-document.documentElement.style.setProperty('--z',Math.min(1,innerWidth/800))})()</script><script src="assets/download-pdf.js"></script></body></html>`;
+document.documentElement.style.setProperty('--z',Math.min(1,innerWidth/800))})()</script></body></html>`;
 fs.writeFileSync(R+'/index.html',html);
 console.log(JSON.stringify({cap,fs_,overall:+overall.toFixed(2),ngxU:+ngxU.toFixed(2),ngxN,fees,persPnl,evPnl,passed,nTr,net:yrs.map(y=>+net(y).toFixed(1)),wU,lpU:+lpU.toFixed(1),implied:+implied.toFixed(2),avg24:avg('2024'),avg26:avg('2026'),rows:rows.map(r=>[r.k,r.n,+r.acc.toFixed(0),+r.fund.toFixed(0)])}));
